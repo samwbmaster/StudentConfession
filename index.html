@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anonymous Student Confession</title>
+    <!-- Load Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Define color animation keyframes */
+        @keyframes colorShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Custom styles for mobile responsiveness and dark cyan aesthetics */
+        .cyan-accent { color: #00FFFF; }
+        .bg-cyan-accent { background-color: #00FFFF; }
+        .hover-bg-cyan-accent:hover { background-color: #00E5E5; }
+        .shadow-cyan-md { box-shadow: 0 4px 15px rgba(0, 255, 255, 0.4); }
+        .shadow-cyan-lg:hover { box-shadow: 0 6px 20px rgba(0, 255, 255, 0.7); }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Animated Gradient Background */
+            background: linear-gradient(135deg, #151c27, #080a0f, #1e2634, #080a0f); /* Subtle shift between dark blues/blacks */
+            background-size: 400% 400%; /* Important: Make the gradient larger than the viewport */
+            animation: colorShift 25s ease infinite; /* Slow, smooth color cycling */
+            
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            color: #ffffff;
+        }
+
+        /* Glassmorphism Styles applied to the confession card */
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.08); 
+            border: 1px solid rgba(255, 255, 255, 0.15); 
+            border-radius: 1.5rem; 
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); 
+            backdrop-filter: blur(30px); 
+            -webkit-backdrop-filter: blur(30px);
+        }
+        
+        /* Ensures text typed by the user is clearly visible (white) */
+        textarea {
+            background-color: rgba(0, 0, 0, 0.2); 
+            border-color: rgba(255, 255, 255, 0.1);
+            color: #ffffff; 
+            transition: all 0.2s ease-in-out;
+            resize: none; 
+        }
+        textarea:focus {
+            border-color: #00FFFF; 
+            background-color: rgba(0, 0, 0, 0.3); 
+            box-shadow: 0 0 0 1px #00FFFF;
+        }
+        /* Style for the placeholder text */
+        textarea::placeholder {
+            color: #888; 
+            opacity: 1; 
+        }
+
+        /* Submit Button Styling using Electric Cyan */
+        .submit-button {
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="glass-card w-full max-w-lg p-6 sm:p-8 rounded-2xl">
+        <h1 class="text-3xl font-bold text-center text-white mb-4">Anonymous Student Confession</h1>
+        <p class="text-center text-gray-400 mb-6">Share ur thoughts, feelings, or any secrets safely.</p>
+        
+        <form id="confessionForm" class="space-y-4">
+            <div>
+                <label for="confession" class="block text-sm font-medium text-gray-200 mb-2">Spill The Tea</label>
+                <textarea 
+                    id="confession" 
+                    name="confession" 
+                    rows="8" 
+                    class="w-full rounded-xl p-4 focus:ring-opacity-50" 
+                    placeholder="Enter ur anonymous confession here..." 
+                    required 
+                    maxlength="4096"
+                ></textarea>
+            </div>
+
+            <!-- Submission Button uses the dark cyan button class -->
+            <button 
+                type="submit" 
+                id="submitButton"
+                class="w-full font-semibold py-3 px-4 rounded-xl bg-cyan-accent text-gray-900 submit-button shadow-cyan-md hover-bg-cyan-accent shadow-cyan-lg"
+            >
+                Send Confession
+            </button>
+        </form>
+
+        <!-- Status Message Area - Dark background for status container -->
+        <div id="statusMessage" class="mt-6 p-3 rounded-xl text-center transition-all duration-300 bg-gray-800 text-gray-300 border border-gray-700">
+            luah dengan tenang gais.
+        </div>
+
+    </div>
+
+    <script>
+        // *** FINAL CONFIRMED GOOGLE APPS SCRIPT WEB APP URL ***
+        // This URL is pointing to your current, deployed GAS script.
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzD1VWnUGEtMNjM-R58MI-tZZwYTNkX8wz54RaBkCxyt1uUCWB8hMYCugD2ADejMinz/exec'; 
+
+        const form = document.getElementById('confessionForm');
+        const statusMessage = document.getElementById('statusMessage');
+        const submitButton = document.getElementById('submitButton');
+
+        function displayStatus(message, type = 'info') {
+            statusMessage.textContent = message;
+            statusMessage.className = 'mt-6 p-3 rounded-xl text-center transition-all duration-300 border';
+            
+            // Adjust colors for the dark UI
+            if (type === 'success') {
+                statusMessage.classList.add('bg-green-700', 'text-white', 'border-green-500');
+            } else if (type === 'error') {
+                statusMessage.classList.add('bg-red-700', 'text-white', 'border-red-500');
+            } else if (type === 'loading') {
+                statusMessage.classList.add('bg-gray-700', 'text-gray-300', 'border-[rgba(0,255,255,0.5)]'); // Use Cyan accent for loading border
+            } else {
+                statusMessage.classList.add('bg-gray-800', 'text-gray-400', 'border-gray-700');
+            }
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const confessionText = document.getElementById('confession').value.trim();
+
+            if (!confessionText) {
+                displayStatus("Confession cannot be empty!", 'error');
+                return;
+            }
+
+            submitButton.disabled = true;
+            submitButton.textContent = 'Sending...';
+            displayStatus('Sending confession securely via Google Proxy...', 'loading');
+
+            try {
+                // Sending without the 'Content-Type' header and relying on the GAS
+                // doOptions/doPost to handle the communication correctly.
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ confession: confessionText })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Proxy server returned HTTP ${response.status} ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayStatus("Yihhh Confession Sent Successfully! Thank you.", 'success');
+                    form.reset();
+                } else {
+                    // This will catch errors from the GAS script (like Telegram failure or blocked words)
+                    throw new Error(result.message || "Unknown proxy server error.");
+                }
+
+            } catch (error) {
+                console.error('Submission Error:', error);
+                displayStatus(`❌ Failed to send confession. Error: ${error.message}`, 'error');
+            }
+            
+            submitButton.disabled = false;
+            submitButton.textContent = 'Send Confession';
+        });
+
+    </script>
+</body>
+</html>
+
